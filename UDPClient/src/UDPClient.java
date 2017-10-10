@@ -1,6 +1,7 @@
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.*;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Axel on 6/10/2017.
@@ -10,27 +11,32 @@ public class UDPClient {
 
     public static void main (String args[]) throws Exception {
 
-        String sendFilePath = "C:\\Users\\fergan\\Desktop\\chapter 15.pdf";
+        String sendFilePath = "fileToSend.pdf";
 
+        int datagramSize = 64000;
 
-        byte[] filePackageBuffer = null;
-        byte[] infoPackageBuffer = null;
+        byte[] filePackageBuffer = new byte[datagramSize];
+        byte[] filePackageBuffer2;
+        byte[] infoPackageBuffer;
+        byte[] infoPackageBuffer2;
         byte[] replyBuffer = new byte[1024];
 
         int count = 0;
         int PORTNUMBER = 12345;
-        int bytesRead = 0;
-        InetAddress HOSTNAME = null;
 
-        BufferedInputStream bis = null;
+        InetAddress HOSTNAME;
+
+        BufferedInputStream bis;
 
         DatagramSocket socket = null;
 
-        DatagramPacket informationPacket = null;
-        DatagramPacket filePacket = null;
-        DatagramPacket receivePacket = null;
+        DatagramPacket informationPacket;
+        DatagramPacket informationPacket2;
+        DatagramPacket filePacket;
+        DatagramPacket receivePacket;
 
         try {
+
             // Get hostname
             HOSTNAME = InetAddress.getLocalHost();
 
@@ -40,32 +46,46 @@ public class UDPClient {
             // Filestream
             File f = new File(sendFilePath);
             bis = new BufferedInputStream(new FileInputStream(f));
-            System.out.println("filestream open");
-            filePackageBuffer = new byte[64000];
+
             // PACKAGE 1: information
-            //              Sending the filesize so the server knows how many packets he can expect
+            //              Sending the filesize and filename so the server knows how many packets he can expect
             infoPackageBuffer = ((Integer)bis.available()).toString().getBytes();
             informationPacket = new DatagramPacket(infoPackageBuffer,infoPackageBuffer.length,HOSTNAME,PORTNUMBER);
             socket.send(informationPacket);
+            infoPackageBuffer2 = sendFilePath.getBytes();
+            informationPacket2 = new DatagramPacket(infoPackageBuffer2, infoPackageBuffer2.length, HOSTNAME, PORTNUMBER);
+            socket.send(informationPacket2);
 
             // PACKAGE 2: file
-            //              As long there are bytes in the buffer of bis, we kan send packets with size 65536-1-64 (max place in datagram)
-            while((bytesRead=(bis.read(filePackageBuffer,0,filePackageBuffer.length))) !=-1 ){
-                System.out.println("A packet has been send");
-                System.out.println("bytes : "+bytesRead);
-                socket.send(new DatagramPacket(filePackageBuffer,bytesRead,HOSTNAME,PORTNUMBER));
+            //              As long there are bytes in the buffer of bis, we can send packages with size 65536-1-64 (max place in datagram)
+            //              For safety reasons we take 64000
+            while(bis.available() > 0){
+
+                if (bis.available() < datagramSize) {
+                    filePackageBuffer2 = new byte[bis.available()];
+                    bis.read(filePackageBuffer2, 0, bis.available());
+                    filePacket = new DatagramPacket(filePackageBuffer2, filePackageBuffer2.length, HOSTNAME, PORTNUMBER);
+                    socket.send(filePacket);
+                    count++;
+                    System.out.println("Package " + count + " sending.." + filePackageBuffer2.length + "byte");
+                }else {
+                    bis.read(filePackageBuffer, 0, datagramSize);
+                    filePacket = new DatagramPacket(filePackageBuffer, filePackageBuffer.length, HOSTNAME, PORTNUMBER);
+                    socket.send(filePacket);
+                    count++;
+                    System.out.println("Package " + count + " sending.." + filePackageBuffer.length + "byte");
+                }
+                TimeUnit.MILLISECONDS.sleep(100);
 
             }
 
-            System.out.println("Count: " + count);
-/*
+            System.out.println(count + " packages sent");
+
             // PACKAGE 3: reply
             receivePacket = new DatagramPacket(replyBuffer, replyBuffer.length);
             socket.receive(receivePacket);
-            System.out.println("Reply: " + new String(receivePacket.getData()));
+            System.out.println("Reply from server: " + new String(receivePacket.getData()));
 
-*/
-            System.out.println("BIS closing...");
             bis.close();
 
         }catch (SocketException e) {
