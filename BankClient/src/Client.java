@@ -20,12 +20,12 @@ public class Client implements BankOperations {
     @Override
     public int withdraw(int value) throws RemoteException, BankExceptions {
         try{
-
+            balance = 1;
             return balance;
         }catch(Exception e){
             e.getMessage();
         }
-
+        return 0;
     }
 
     @Override
