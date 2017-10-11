@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="TCPServer1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/TCPServer/out/artifacts/TCPServer_jar/TCPServer.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

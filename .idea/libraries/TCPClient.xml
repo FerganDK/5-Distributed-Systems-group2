@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="TCPClient">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/TCPClient/TCPClient.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
