@@ -1,15 +1,22 @@
-package operations;
+import operations.*;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class Server extends UnicastRemoteObject implements  BankOperations{
+/**
+ * Created by Axel on 11/10/2017.
+ */
+public class Server extends UnicastRemoteObject implements BankOperations {
+
     int balance;
 
-    public Server() throws RemoteException {
-        super();
+    public Server() throws RemoteException{
+        balance = 0;
     }
 
+    public Server(int value) throws RemoteException {
+        balance = value;
+    }
 
     @Override
     public synchronized int checkBalance() throws RemoteException {
@@ -23,7 +30,7 @@ public class Server extends UnicastRemoteObject implements  BankOperations{
                 balance -= value;
                 return balance;
             } else{
-                throw new BankExceptions("No sufficient funds, you are " + (balance-value) + " short!");
+                throw new BankExceptions("No sufficient funds, you are " + (value-balance) + " short!");
             }
         }else{
             throw new BankExceptions("Amount to withdraw is less then 0!");
